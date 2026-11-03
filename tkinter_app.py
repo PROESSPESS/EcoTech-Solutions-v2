@@ -9,10 +9,12 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 import pymysql
-from datetime import date
+#from datetime import date
 import utilidades
 import clases
 from clases import Empleado, Departamento, Proyecto, RegistroTiempo, BaseDatos, EmpleadoRepositorio, DepartamentoRepositorio, ProyectoRepositorio, RegistroTiempoRepositorio
+
+from seguridad import validar_credenciales
 
 # Campos que se mostrarán en los formularios.
 # Las claves son nombres visibles; los valores son los nombres de atributos
@@ -350,10 +352,78 @@ class EcoTechApp:
         ttk.Button(marco, text="Generar", command=generar).pack(anchor="e", pady=(8, 0))
 
 
+
+##newxd###########################################################################################
+
+
+
+
+class VentanaLogin:
+    def __init__(self, login: tk.Tk, al_autenticar_exitosamente):
+        self.login = login
+        self.al_autenticar_exitosamente = al_autenticar_exitosamente
+
+        # Configuración principal de la ventana
+        self.login.title("Inicio de Sesión")
+        self.login.geometry("340x260")
+        self.login.resizable(False, False)
+
+        # Estilo para el título en ttk
+        estilo = ttk.Style()
+        estilo.configure("Titulo.TLabel", font=("Segoe UI", 14, "bold"))
+
+        # Título
+        ttk.Label(
+            self.login,
+            text="Ecotech",
+            style="Titulo.TLabel"
+        ).pack(pady=15)
+
+        # Campo Usuario
+        ttk.Label(self.login, text="Usuario:").pack(anchor="w", padx=30)
+        self.entry_usuario = ttk.Entry(self.login, width=30)
+        self.entry_usuario.pack(padx=30, pady=5)
+        self.entry_usuario.focus_set()
+        # Campo Contraseña
+        ttk.Label(self.login, text="Contraseña:").pack(anchor="w", padx=30)
+        self.entry_password = ttk.Entry(self.login, width=30, show="*")
+        self.entry_password.pack(padx=30, pady=5)
+
+        # Permite accionar el login presionando la tecla Enter
+        self.login.bind('<Return>', lambda event: self.intentar_login())
+
+        # Botón Ingresar
+        ttk.Button(
+            self.login,
+            text="Iniciar Sesión",
+            command=self.intentar_login
+        ).pack(pady=20)
+
+    def intentar_login(self):
+        usuario = self.entry_usuario.get()
+        password = self.entry_password.get()
+
+        log_valido, mensaje = validar_credenciales(usuario, password)
+
+        if log_valido:
+            self.login.unbind('<Return>')
+            self.login.destroy()
+            self.al_autenticar_exitosamente()
+        else:
+            messagebox.showerror("Acceso Denegado", mensaje)
+
+
 def main():
-    root = tk.Tk()
-    EcoTechApp(root)
-    root.mainloop()
+    def abrir_app_principal():
+        # Esta función solo se ejecuta si el login fue exitoso
+        root_principal = tk.Tk()
+        EcoTechApp(root_principal)
+        root_principal.mainloop()
+
+    # Arrancamos mostrando únicamente la ventana de login
+    login_start = tk.Tk()
+    VentanaLogin(login_start, abrir_app_principal)
+    login_start.mainloop()
 
 
 if __name__ == "__main__":
